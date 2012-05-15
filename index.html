@@ -1,0 +1,450 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<title>Shakespeare in Fucking Love, A PunyMVC demo</title>
+    <style>
+        blockquote:first-letter {
+        	float: left;
+        	margin: 0em .22em 3.1em 0;
+        	font-family: "Monotype Corsiva", "Apple Chancery", fantasy;
+        	font-size: 40pt;
+        	font-weight: bold; 
+        	font-variant: small-caps; 
+        	}
+        blockquote {
+        	margin: 0.5em 0.5em;
+        	border-left: 1px dashed #999;
+        	padding-left: 0.5em; 
+        	font-size: 24pt;
+        	display:block;
+        	margin-bottom: 20px;
+        	}
+    
+        span { 
+            font-size:14pt; 
+            color:lightblue; 
+            padding-right:15px;
+            }
+        blockquote span { 
+            font-size:18pt; 
+            color:red; 
+            padding-right:0px;
+            }
+
+    </style>
+</head>
+<body>
+    <h3>Hello Turetted Shakespeare</h3>
+    
+    <!-- See my blog article at 
+         http://bitfool.com/2012/puny-mvc-js -->
+
+    <!-- Largely influenced by (and in some parts flagrantly copied from) this article by Peter Michaux: 
+         http://peter.michaux.ca/articles/mvc-architecture-for-javascript-applications -->
+    
+    
+    <script type="text/javascript">
+
+        // The quote model that views can observe and controllers can mutate.
+        //
+        var makeQuoteModel = function(puny) {
+            //console.log('create the model');
+
+			//
+			// private vars and functions that the model needs to manage model data
+			//
+			var running = false;
+			var lastQuoteIndex = lastAdjectiveIndex = lastAdverbIndex = 0;
+			var currentQuote = 'There is nothing either good or bad, but thinking makes it so.';
+			var testquotes = [
+				"I'll follow you and make a [adj]heaven out of hell, <br/>and I'll die by your hand which I [adv]love so well.",
+				"Love sought is good, but given unsought, <br/>is [adj]better."
+            ];
+			var quotes = [
+				"I'll follow you and make a [adj]heaven out of hell, <br/>and I'll die by your hand which I [adv]love so well.",
+				"Love sought is good, but given unsought, <br/>is [adj]better.",
+				"Love [adv]looks not with the eyes, but with the mind <br/>And therefore is winged Cupid [adv]painted blind.",
+				"My bounty is as deep as the [adj]sea, <br/>My love as [adj]deep; <br/>the more I give to thee, <br/>The more I have, <br/>for both are [adj]infinite.",
+				"My [adj]heart is ever [adj]at your [adj]service.",
+				"When I saw you I [adv]fell in love, <br/>and you smiled because you [adv]knew.",
+				"If music be the food of love, [adv]play on.",
+				"Doubt thou the [adj]stars are fire, <br/>Doubt the [adj]sun doth move, <br/>Doubt truth to be a [adj]liar <br/>but never doubt thy love.",
+				"Shall I [adv]compare thee <br/>to a [adj]summer's [adj]day?"
+			];
+
+			var adjectives = [
+				"fucking",
+				"fuck fucking",
+				"God damn fucking",
+				"motherfucking",
+				"motherfucker fucking",
+				"fucking damn fuck",
+				"fucking fuck fuck",
+				"fuck,fuck,fuck fucking",
+				"fucking fucker fuck",
+				"shit shit fucking"
+			];
+
+			var adverbs = [
+				"fucking",
+				"fuckingly",
+				"fuck fuck fuckly",
+				"God damn fuckingly",
+				"motherfuckingly",
+				"fucking fuckfucker fuckingly"
+			];
+
+			var makeQuote = function() {
+				//console.log('a');
+				var newidx = nonRandomIndex(quotes,lastQuoteIndex);
+				var randQuote = quotes[newidx];
+				lastQuoteIndex = newidx;
+				//console.log('b:'+randQuote+"|"+newidx);
+				var fuckedQuote = fuckTheQuote(randQuote);
+				//console.log('c:'+fuckedQuote);
+				while(fuckedQuote.indexOf("[") != -1){
+				    fuckedQuote = fuckTheQuote(fuckedQuote);
+					//console.log('d:'+fuckedQuote);
+				}
+				//console.log('here:'+fuckedQuote);
+				return fuckedQuote;
+			};
+
+			var fuckTheQuote = function(str) {
+				//console.log('f1:'+str);
+				var newidx = nonRandomIndex(adjectives,lastAdjectiveIndex);
+				var randomAdjective = adjectives[newidx];
+				lastAdjectiveIndex = newidx;
+				//console.log('f2:'+randomAdjective);
+				var result = str.replace("\[adj\]","<span>("+randomAdjective+")</span> ");
+				//console.log('f3:'+result);
+				newidx = nonRandomIndex(adjectives,lastAdverbIndex);
+				var randomAdverb = adjectives[newidx];
+				lastAdverbIndex = newidx;
+				//console.log('f4:'+randomAdverb);
+				result = result.replace("\[adv\]","<span>("+randomAdverb+")</span> ");
+				//console.log('f5:'+result);
+				return result;
+			};
+			
+            var setQuote = function(quote) {
+	            //console.log('model.setQuote sets currentQuote from passed "quote" value, and notifyObservers(quote)');
+                // Always use very robust checking on values sent to a model.
+                // but here? just make sure you send a string
+                currentQuote = String(quote);
+                puny.notifyObservers( String(currentQuote) );
+            };
+            
+            var tick = function() {
+	            //console.log('model.tick');
+                setQuote( makeQuote() );
+            };
+            
+
+
+            //
+            // publicly available model functions (observer-accessible functions): 
+            //
+            var getQuote = function() {
+	            //console.log('model.getQuote from whatever the currentQuote value is');
+                return currentQuote;
+            };
+            
+            var start = function() {
+	            //console.log('model.start');
+                if (!running) {
+                    tick();
+                    running = true;
+                    interval = setInterval(tick, 1000);
+                    puny.notifyObservers('data: model.start >> notifyObservers');
+                }
+            };
+            
+            var stop = function() {
+	            //console.log('model.stop');
+                if (running) {
+                    running = false;
+                    clearInterval(interval);
+                    interval = null;
+                    puny.notifyObservers('data: model.stop >> notifyObservers');
+                }
+            };
+            
+            var reset = function() {
+                //console.log('model.reset runs setQuote with a default quote.');
+                setQuote( fuckTheQuote('These words are [adj]razors to my wounded heart.') );
+            };
+
+
+
+            // A mixin technology at work for exposing the observer
+            // functions as part of the model API.
+            return {
+                getQuote: getQuote,
+                reset: reset,
+                start: start,
+                stop: stop,
+                puny: puny
+            };
+        };
+
+
+        // A simple widget that displays the cursified quote.
+        //  Note: it's a widget, not a true view
+        //   a widget skips the controller and can communicate directly with the model
+        var makeCursingShakespeareWidget = function(initialCurseModel) {
+
+            //console.log('create the widget');
+            var curseModel;
+            var rootEl = document.createElement('blockquote');
+            
+            var showQuote = function(newQuote) {
+	            //console.log('widget.showQuote');
+                rootEl.innerHTML = newQuote;
+            };
+
+            var curseChangeObserver = function() {
+            	//console.log('widget.curseChangeObserver');
+                showQuote(curseModel.getQuote());
+            };
+
+            var setCurseModel = function(cm) {
+	            //console.log('widget.setCurseModel');
+                if (!cm) {
+                    throw new Error('must supply a curse model');
+                }
+                if (curseModel) {
+                    curseModel.puny.removeChangeObserver(curseChangeObserver);
+                }
+                curseModel = cm;
+                //console.log(curseModel);
+                curseModel.puny.addChangeObserver(curseChangeObserver);
+                showQuote(curseModel.getQuote());
+            };
+
+            setCurseModel(initialCurseModel);
+
+            return {
+                getRootEl: function() {
+                    return rootEl;
+                }
+                //,
+                //setCurseModel: setCurseModel
+            };
+        };
+
+
+
+
+        // A view that takes input actions from user.
+        //  It's a real view, not a widget.
+        //  It has no clue about the model, it only talks to the controller, or is messaged by the model.
+        var makeCurseKnobsView = function(initialCurseKnobsController) {
+
+            //console.log('create the knobview');
+            var curseModel;
+            var curseKnobsController;
+            
+            var rootEl = document.createElement('div');
+
+            var startButton = document.createElement('span');
+            startButton.innerHTML = 'start';
+            startButton.addEventListener('click', function() {
+                curseKnobsController.handleStart(curseModel);
+            }, false);
+            rootEl.appendChild(startButton);
+            
+            var stopButton = document.createElement('span');
+            stopButton.innerHTML = 'stop';
+            stopButton.addEventListener('click', function() {
+                curseKnobsController.handleStop(curseModel);
+            }, false);
+            rootEl.appendChild(stopButton);
+
+            var resetButton = document.createElement('span');
+            resetButton.innerHTML = 'reset';
+            resetButton.addEventListener('click', function() {
+                curseKnobsController.handleReset(curseModel);
+            }, false);
+            rootEl.appendChild(resetButton);
+
+            var setCurseModel = function(cm) {
+	            //console.log('knobview.setCurseModel');
+                if (!cm) {
+                    throw new Error('must supply a curse model');
+                }
+                curseModel = cm;
+            };
+            
+            var setCurseKnobsController = function(ckc) {
+	            //console.log('knobview.setCurseKnobsController');
+                if (!ckc) {
+                    throw new Error('must supply a curse knobs controller');
+                }
+                curseKnobsController = ckc;
+            };
+                    
+            setCurseKnobsController(initialCurseKnobsController);
+            setCurseModel(curseKnobsController.curseModel);
+            
+            return {
+                getRootEl: function() {
+                    return rootEl;
+                },
+                setCurseModel: setCurseModel,
+                setCurseKnobsController: setCurseKnobsController
+            };
+        };
+        
+ 
+        // A controller that manipulates the model.
+        //
+        var makeCurseKnobsController = function(curseModel) {
+            //console.log('create the controller');
+            return {
+                curseModel: curseModel,
+                handleStart: function() {
+                	//console.log('controller.start');
+                    curseModel.start();
+                },
+                handleStop: function() {
+                	//console.log('controller.stop');
+                    curseModel.stop();
+                },
+                handleReset: function() {
+                	//console.log('controller.reset');
+                    curseModel.reset();
+                }
+            };
+        };
+ 
+
+     
+
+    </script>
+        
+
+    <script type="text/javascript">
+        // Puny model and some utilities
+        //
+
+        var makePuny = function() {
+            //console.log('create the puny');
+            var changeObservableSubject = makeObservableSubject();
+            var notifyObservers = changeObservableSubject.notifyObservers;
+        
+        
+            // Note the mixin technology at work for exposing the observer
+            // functions as part of the clock model API.
+            return {
+                addChangeObserver: changeObservableSubject.addObserver,
+                removeChangeObserver: changeObservableSubject.removeObserver,
+                notifyObservers: notifyObservers
+            };
+                
+        }
+
+
+
+		//
+		// UTILITIES
+		//
+        // Some pure functions that are handy to have around.
+        // These could be created in more limited visibility scopes.
+
+        // A generic observable subject class that is useful in model creation.
+        //
+        var makeObservableSubject = function() {
+            //console.log('makeObservableSubject');
+            var observers = [];
+            
+            var addObserver = function(o) {
+                if (typeof o !== 'function') {
+                    throw new Error('observer must be a function');
+                }
+                for (var i=0, ilen=observers.length; i<ilen; i++) {
+                    var observer = observers[i];
+                    if (observer === o) {
+                        throw new Error('observer already in the list');
+                    }
+                }
+                //console.log('makeObservableSubject.addObserver called by model after messaged from view');
+                observers.push(o);
+            };
+            
+            var removeObserver = function(o) {
+                for (var i=0, ilen=observers.length; i<ilen; i++) {
+                    var observer = observers[i];
+                    if (observer === o) {
+                        observers.splice(i, 1);
+		                console.log('mOS-rO');
+                        return;
+                    }
+                }
+                throw new Error('could not find observer in list of observers');
+            };
+            
+            var notifyObservers = function(data) {
+                // Make a copy of observer list in case the list
+                // is mutated during the notifications.
+                //console.log('makeObservableSubject.notifyObservers');
+                //console.log(data);
+                var observersSnapshot = observers.slice(0);
+                for (var i=0, ilen=observersSnapshot.length; i<ilen; i++) {
+                    observersSnapshot[i](data);
+                }
+            };
+            
+            return {
+                addObserver: addObserver,
+                removeObserver: removeObserver,
+                notifyObservers: notifyObservers
+            };
+        };
+        
+
+        // A semi-random array index picker (avoids same array value twice in a row)
+        //
+		var nonRandomIndex = function(arr,idx) {
+		    // returns a random array index NOT equal to lastidx to avoid same array value twice in a row
+		    var makeNewIdx = function() {
+		        return Math.floor(Math.random() * arr.length);
+            }
+            var newidx = makeNewIdx();
+            //console.log("ni"+newidx);
+            if (idx == newidx){
+                while(idx == newidx){
+                    newidx = makeNewIdx();
+                }
+            }
+		    return newidx;
+		}
+
+        
+    </script>
+
+       
+
+    <script type="text/javascript">
+        // Bootstrap the clock app.
+        // Bootstrapping is always a bit of a messy process.
+        //
+        window.addEventListener('load', function() {
+            
+            //console.log('bootstrapping');
+            var puny = makePuny();
+            var curseModel = makeQuoteModel(puny);
+            var curseKnobsController = makeCurseKnobsController(curseModel);
+            var curseKnobsView = makeCurseKnobsView(curseKnobsController);
+            var cursingShakespeareWidget = makeCursingShakespeareWidget(curseModel);
+
+            //build the DOM
+            document.body.appendChild(curseKnobsView.getRootEl());
+            document.body.appendChild(cursingShakespeareWidget.getRootEl());
+            //console.log('end bootstrapping');
+        }, false);
+     </script>
+
+</body>
+</html>
