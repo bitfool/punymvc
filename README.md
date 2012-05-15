@@ -16,28 +16,30 @@ Let's start at the bottom:
 Bootstrap:   To run this program, we do just a few things.
 
 <code>
-            //this inits the Puny, which keeps track of observers
-            var puny = makePuny();   
-            
-            //this inits the custom model, and passes in the Puny
-            var curseModel = makeQuoteModel(puny);   
-            
-            //this inits the Controller, and passes in the Model
-            // (the Controller manages the UI start/stop/reset buttons)
-            var curseKnobsController = makeCurseKnobsController(curseModel);
-            
-            //this inits the View, and passes in the Controller
-            // (the View creates the UI start/stop/reset buttons)
-            var curseKnobsView = makeCurseKnobsView(curseKnobsController);
 
-            //this inits the Widget, and passes in the Model
-            // (the Widget creates the UI blockquote for the Shakespeare)
-            var cursingShakespeareWidget = makeCursingShakespeareWidget(curseModel);
+    //this inits the Puny, which keeps track of observers
+    var puny = makePuny();   
+    
+    //this inits the custom model, and passes in the Puny
+    var curseModel = makeQuoteModel(puny);   
+    
+    //this inits the Controller, and passes in the Model
+    //  (the Controller manages the UI start/stop/reset buttons)
+    var curseKnobsController = makeCurseKnobsController(curseModel);
+    
+    //this inits the View, and passes in the Controller
+    //  (the View creates the UI start/stop/reset buttons)
+    var curseKnobsView = makeCurseKnobsView(curseKnobsController);
 
-            //the View and Widget have constructors for all the DOM elements, 
-            //  so here's where we use them to build the DOM
-            document.body.appendChild(curseKnobsView.getRootEl());
-            document.body.appendChild(cursingShakespeareWidget.getRootEl());
+    //this inits the Widget, and passes in the Model
+    //  (the Widget creates the UI blockquote for the Shakespeare)
+    var cursingShakespeareWidget = makeCursingShakespeareWidget(curseModel);
+
+    //the View and Widget have constructors for all the DOM elements, 
+    //  so here's where we use them to build the DOM
+    document.body.appendChild(curseKnobsView.getRootEl());
+    document.body.appendChild(cursingShakespeareWidget.getRootEl());
+
 </code>
 
 That's pretty easy, nice and organized.  The Widget displays a random bowdlerized Shakespearean quote that is generated at 1 second intervals by the Model.  The View has Start/Stop/Reset buttons to control the actions of the Widget (via the Controller, and the Model).

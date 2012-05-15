@@ -156,8 +156,9 @@
                 if (!running) {
                     tick();
                     running = true;
-                    interval = setInterval(tick, 1000);
-                    puny.notifyObservers('data: model.start >> notifyObservers');
+                    interval = setInterval(tick, 4000);
+                    //console.log('data: model.start >> notifyObservers');
+                    puny.notifyObservers(String(currentQuote));
                 }
             };
             
@@ -167,7 +168,8 @@
                     running = false;
                     clearInterval(interval);
                     interval = null;
-                    puny.notifyObservers('data: model.stop >> notifyObservers');
+                    //console.log('data: model.stop >> notifyObservers');
+                    puny.notifyObservers(fuckTheQuote('As flies to wanton boys, are we to the gods; <br/>they kill us for their [adj]sport.'));
                 }
             };
             
@@ -185,7 +187,7 @@
                 reset: reset,
                 start: start,
                 stop: stop,
-                puny: puny
+                puny: puny  //pass along puny for usage by observers, etc
             };
         };
 
@@ -204,9 +206,14 @@
                 rootEl.innerHTML = newQuote;
             };
 
-            var curseChangeObserver = function() {
+            var curseChangeObserver = function(data) {
             	//console.log('widget.curseChangeObserver');
-                showQuote(curseModel.getQuote());
+				
+				//this is a pull (hit the model and ask for the quote)
+                //showQuote(curseModel.getQuote());
+
+				//this is a push (the model just broadcasts the quote, and we use it)
+                showQuote(data);
             };
 
             var setCurseModel = function(cm) {
